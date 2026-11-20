@@ -43,6 +43,19 @@ $env:DB_PASSWORD="your_mysql_password"
 mvn clean spring-boot:run
 ```
 
+## Deploy to Vercel
+
+The project includes a Dockerfile for Vercel's Container Runtime. Import this repository into Vercel and use the Container framework preset. The server listens on Vercel's `PORT` environment variable.
+
+The container defaults to an in-memory H2 database for demo use; its data is isolated per instance and is not durable. For persistent data, configure Vercel environment variables for a reachable MySQL database:
+
+- `DB_URL`: JDBC URL, for example `jdbc:mysql://<host>:3306/estateease_db`
+- `DB_DRIVER`: `com.mysql.cj.jdbc.Driver`
+- `DB_USERNAME`: database username
+- `DB_PASSWORD`: database password
+
+Do not use the demo setup for real personal or financial information.
+
 ## Demo accounts
 | Role | Email | Password |
 |---|---|---|
