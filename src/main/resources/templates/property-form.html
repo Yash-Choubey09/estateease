@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Listing Details | EstateEase</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments :: nav}"></div>
+
+<main class="container" style="max-width: 860px; padding-top: 40px; padding-bottom: 80px;">
+  <!-- BREADCRUMB BAR WITH HOME OPTION -->
+  <div class="breadcrumb-bar">
+    <div class="breadcrumb-links">
+      <a th:href="@{/}"><span>🏠 Home</span></a>
+      <span>/</span>
+      <a th:href="@{/owner/dashboard}">Owner Dashboard</a>
+      <span>/</span>
+      <span style="color: var(--dark); font-weight: 700;">Property Form</span>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <a class="btn btn-sm btn-light" th:href="@{/}">🏠 Home</a>
+      <a class="btn btn-sm btn-outline" th:href="@{/owner/dashboard}">← Dashboard</a>
+    </div>
+  </div>
+
+  <div style="margin-bottom: 28px;">
+    <span class="section-tag">OWNER WORKSPACE</span>
+    <h1 style="font-size: 32px; font-weight: 800; letter-spacing: -0.6px;" th:text="${property.id == null ? 'Create a New Listing' : 'Edit Listing Details'}">
+      Property Form
+    </h1>
+    <p style="color: var(--text-muted); font-size: 14.5px;">
+      Provide accurate details, amenities, and imagery to attract high-intent tenants and buyers.
+    </p>
+  </div>
+
+  <div style="background: white; border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 36px; box-shadow: var(--shadow-sm);">
+    <form th:action="@{/owner/properties/save}" th:object="${property}" method="post">
+      <input type="hidden" th:field="*{id}">
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <!-- TITLE -->
+        <div class="form-group" style="grid-column: span 2;">
+          <label>Property Title *</label>
+          <input class="form-control" type="text" th:field="*{title}" required maxlength="120"
+                 placeholder="e.g. Sunlit 3BHK Apartment with Balcony near Metro">
+          <small class="field-error" th:errors="*{title}"></small>
+        </div>
+
+        <!-- DESCRIPTION -->
+        <div class="form-group" style="grid-column: span 2;">
+          <label>Detailed Description *</label>
+          <textarea class="form-control" th:field="*{description}" rows="4" required maxlength="2500"
+                    placeholder="Describe layout, ventilation, nearby landmarks, society amenities, connectivity, etc."></textarea>
+          <small class="field-error" th:errors="*{description}"></small>
+        </div>
+
+        <!-- LOCATION -->
+        <div class="form-group">
+          <label>Location / City *</label>
+          <input class="form-control" type="text" th:field="*{location}" required maxlength="100"
+                 placeholder="e.g. Greater Kailash, Delhi or Sector 46, Gurugram">
+          <small class="field-error" th:errors="*{location}"></small>
+        </div>
+
+        <!-- PROPERTY TYPE -->
+        <div class="form-group">
+          <label>Property Type *</label>
+          <select class="form-control" th:field="*{type}" required>
+            <option th:each="t : ${types}" th:value="${t}" th:text="${t}"></option>
+          </select>
+          <small class="field-error" th:errors="*{type}"></small>
+        </div>
+
+        <!-- PRICE -->
+        <div class="form-group">
+          <label>Price (INR) *</label>
+          <input class="form-control" type="number" step="1" min="1" th:field="*{price}" required
+                 placeholder="Monthly rent (e.g. 35000) or selling price">
+          <small class="field-error" th:errors="*{price}"></small>
+        </div>
+
+        <!-- AVAILABILITY -->
+        <div class="form-group">
+          <label>Current Status *</label>
+          <select class="form-control" th:field="*{availability}" required>
+            <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}"></option>
+          </select>
+        </div>
+
+        <!-- BEDROOMS -->
+        <div class="form-group">
+          <label>Bedrooms *</label>
+          <input class="form-control" type="number" min="0" max="30" th:field="*{bedrooms}" required>
+        </div>
+
+        <!-- BATHROOMS -->
+        <div class="form-group">
+          <label>Bathrooms *</label>
+          <input class="form-control" type="number" min="0" max="30" th:field="*{bathrooms}" required>
+        </div>
+
+        <!-- AREA SQ FT -->
+        <div class="form-group">
+          <label>Super Built-up Area (Sq Ft)</label>
+          <input class="form-control" type="number" min="0" th:field="*{areaSqFt}" placeholder="e.g. 1450">
+        </div>
+
+        <!-- FURNISHING -->
+        <div class="form-group">
+          <label>Furnishing Status</label>
+          <select class="form-control" th:field="*{furnishing}">
+            <option value="Fully Furnished">Fully Furnished</option>
+            <option value="Semi-Furnished">Semi-Furnished</option>
+            <option value="Unfurnished">Unfurnished</option>
+            <option value="Bare Shell">Bare Shell</option>
+          </select>
+        </div>
+
+        <!-- IMAGE URL -->
+        <div class="form-group" style="grid-column: span 2;">
+          <label>Cover Photo Image URL</label>
+          <input class="form-control" type="url" th:field="*{imageUrl}"
+                 placeholder="Paste a direct image URL (Unsplash or any hosted image). Leave empty for auto-photo.">
+          <small style="color: var(--text-muted); font-size: 11.5px; display: block; margin-top: 4px;">
+            Tip: If left blank, a high-resolution photo matching the property category will automatically be selected.
+          </small>
+        </div>
+
+        <!-- AMENITIES -->
+        <div class="form-group" style="grid-column: span 2;">
+          <label>Amenities &amp; Features (comma-separated)</label>
+          <input class="form-control" type="text" th:field="*{amenities}"
+                 placeholder="e.g. Swimming Pool, Gymnasium, Reserved Parking, 24/7 Security, Power Backup">
+        </div>
+      </div>
+
+      <!-- FORM ACTIONS -->
+      <div style="display: flex; justify-content: flex-end; align-items: center; gap: 16px; margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--border);">
+        <a class="btn btn-light" th:href="@{/owner/dashboard}">Cancel</a>
+        <button class="btn" type="submit">
+          <span th:text="${property.id == null ? 'Publish Listing' : 'Save Changes'}">Save Listing</span> ↗
+        </button>
+      </div>
+    </form>
+  </div>
+</main>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+</body>
+</html>

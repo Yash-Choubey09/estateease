@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Owner Dashboard | EstateEase</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments :: nav}"></div>
+
+<main class="container" style="padding-top: 40px; padding-bottom: 80px;">
+  <div th:replace="~{fragments :: flash}"></div>
+
+  <!-- DASHBOARD TOP HEADER -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px;">
+    <div>
+      <span class="section-tag">OWNER WORKSPACE</span>
+      <h1 style="font-size: 34px; font-weight: 800; letter-spacing: -0.8px;">
+        Welcome back, <em style="font-family:'Playfair Display',serif; font-style:italic; color:var(--primary);" th:text="${user.name}">Aarav</em>.
+      </h1>
+      <p style="color: var(--text-muted); font-size: 14.5px; margin-top: 4px;">
+        Manage your listings portfolio, update occupancy status, and reply to tenant inquiries.
+      </p>
+    </div>
+
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <a class="btn btn-sm btn-light" th:href="@{/}">
+        <span>🏠 Home</span>
+      </a>
+      <a class="btn btn-sm btn-outline" th:href="@{/owner/inquiries}">
+        <span>📬 Inquiries</span>
+      </a>
+      <a class="btn btn-sm btn-emerald" th:href="@{/owner/properties/new}">
+        <span>＋ Add Property</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- METRIC KPI CARDS -->
+  <div class="dashboard-metrics">
+    <div class="metric-card">
+      <span class="metric-label">Total Portfolio</span>
+      <b th:text="${totalCount}">4</b>
+      <span class="metric-sub">Properties registered</span>
+    </div>
+
+    <div class="metric-card">
+      <span class="metric-label">Active &amp; Available</span>
+      <b style="color: var(--success);" th:text="${availableCount}">3</b>
+      <span class="metric-sub">Ready for inquiries</span>
+    </div>
+
+    <div class="metric-card">
+      <span class="metric-label">Rented / Occupied</span>
+      <b style="color: #f59e0b;" th:text="${rentedCount}">1</b>
+      <span class="metric-sub">Generating income</span>
+    </div>
+
+    <div class="metric-card">
+      <span class="metric-label">Quick Links</span>
+      <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 6px;">
+        <a th:href="@{/properties}" class="view-all-link" style="font-size: 13px;">Preview Live Public Listings ↗</a>
+        <a th:href="@{/owner/inquiries}" class="view-all-link" style="font-size: 13px;">Manage Tenant Inquiries ↗</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- PORTFOLIO TABLE -->
+  <div class="section-header" style="margin-bottom: 20px;">
+    <div>
+      <span class="section-tag">LISTINGS MANAGEMENT</span>
+      <h2 style="font-size: 24px; font-weight: 800;">Your Property <em>Listings.</em></h2>
+    </div>
+    <span style="font-size: 13px; color: var(--text-muted);" th:text="${totalCount} + ' listings'">4 listings</span>
+  </div>
+
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>PROPERTY</th>
+          <th>LOCATION</th>
+          <th>PRICE</th>
+          <th>AVAILABILITY</th>
+          <th style="text-align: right;">QUICK ACTIONS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="p : ${properties}">
+          <td>
+            <div class="table-property-cell">
+              <img class="table-property-thumb" th:src="${p.getImageUrlOrFallback()}" th:alt="${p.title}">
+              <div>
+                <a th:href="@{/properties/{id}(id=${p.id})}" style="font-weight: 700; color: var(--dark); font-size: 14.5px;" th:text="${p.title}">Property Title</a>
+                <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+                  <span th:text="${p.type}">APARTMENT</span> ·
+                  <span th:text="${p.bedrooms} + ' Beds, ' + ${p.bathrooms} + ' Baths'">2 Beds</span> ·
+                  <span th:text="${p.areaSqFt} + ' sq ft'">1,200 sq ft</span>
+                </div>
+              </div>
+            </div>
+          </td>
+
+          <td>
+            <span style="font-weight: 500;" th:text="${p.location}">Delhi NCR</span>
+          </td>
+
+          <td>
+            <b style="color: var(--primary); font-size: 15px;" th:text="'₹' + ${#numbers.formatDecimal(p.price,0,'COMMA',0,'POINT')}">₹32,000</b>
+            <small style="display:block; color:var(--text-muted); font-size:11px;" th:text="${p.price >= 1000000 ? 'Selling' : 'Rent / mo'}">Rent</small>
+          </td>
+
+          <td>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="status-badge" th:classappend="'status-' + ${p.availability.name()}" th:text="${p.availability}">AVAILABLE</span>
+              <!-- 1-CLICK TOGGLE BUTTON -->
+              <form th:action="@{/owner/properties/{id}/toggle-status(id=${p.id})}" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-sm btn-light" style="padding: 4px 8px; font-size: 11px;"
+                        th:title="${p.availability.name() == 'AVAILABLE' ? 'Click to mark as Rented' : 'Click to mark as Available'}">
+                  <span th:text="${p.availability.name() == 'AVAILABLE' ? 'Mark Rented ⇄' : 'Mark Available ⇄'}">Toggle</span>
+                </button>
+              </form>
+            </div>
+          </td>
+
+          <td style="text-align: right;">
+            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+              <a class="btn btn-sm btn-light" th:href="@{/properties/{id}(id=${p.id})}">View</a>
+              <a class="btn btn-sm btn-outline" th:href="@{/owner/properties/{id}/edit(id=${p.id})}">Edit</a>
+              <form th:action="@{/owner/properties/{id}/delete(id=${p.id})}" method="post" style="display:inline;"
+                    onsubmit="return confirm('Are you sure you want to delete this property listing?');">
+                <button type="submit" class="btn btn-sm" style="background:#fee2e2; color:#b91c1c; border-color:#fca5a5;">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+
+        <tr th:if="${#lists.isEmpty(properties)}">
+          <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">
+            You haven't listed any properties yet. Click <b>＋ Add New Property</b> above to create your first listing.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+</body>
+</html>

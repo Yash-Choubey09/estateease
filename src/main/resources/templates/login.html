@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign In | EstateEase</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments :: nav}"></div>
+
+<div class="auth-page">
+  <div class="auth-box">
+    <!-- LEFT ART BANNER -->
+    <div class="auth-banner">
+      <div>
+        <span class="hero-tag" style="background: rgba(255,255,255,0.2); color:white;">ESTATEEASE ACCESS</span>
+        <h2 style="font-family:'Playfair Display',serif; font-size: 38px; line-height: 1.15; margin-top: 14px;">
+          Good spaces.<br><em>Good beginnings.</em>
+        </h2>
+      </div>
+
+      <div>
+        <p style="font-size: 14px; opacity: 0.9; line-height: 1.7; margin-bottom: 20px;">
+          Sign in to access your properties dashboard, submit tenant inquiries, and book in-person tours across premium residences.
+        </p>
+
+        <div style="background: rgba(0,0,0,0.3); border-radius: var(--radius-md); padding: 14px 18px; font-size: 12.5px;">
+          <b style="color:#a7f3d0; display:block; margin-bottom: 4px;">⚡ Instant Demo Login</b>
+          <span>Use the 1-click preset buttons on the right to test without typing.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT FORM -->
+    <div class="auth-form-wrap">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <span class="section-tag" style="margin: 0;">WELCOME BACK</span>
+        <a th:href="@{/}" class="view-all-link" style="font-size: 13px;">🏠 Return to Home</a>
+      </div>
+      <h1 style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 20px;">
+        Sign in to <em style="font-family:'Playfair Display',serif; font-style:italic; color:var(--primary);">EstateEase.</em>
+      </h1>
+
+      <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
+      <div class="alert alert-error" th:if="${param.error}">Invalid email or password. Please try again.</div>
+      <div class="alert alert-success" th:if="${param.logout}">You have been signed out successfully.</div>
+
+      <!-- 1-CLICK QUICK DEMO BUTTONS -->
+      <div style="margin-bottom: 20px;">
+        <small style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">1-Click Quick Demo Sign In:</small>
+        <div class="quick-login-pills">
+          <button type="button" class="quick-login-btn" onclick="quickFill('owner@estateease.demo', 'Owner@123')">
+            🏢 Owner Demo
+          </button>
+          <button type="button" class="quick-login-btn" onclick="quickFill('tenant@estateease.demo', 'Tenant@123')">
+            🏠 Tenant Demo
+          </button>
+        </div>
+      </div>
+
+      <form id="loginForm" th:action="@{/login}" method="post">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label>Email Address</label>
+          <input class="form-control" type="email" id="usernameInput" name="username" required
+                 placeholder="name@example.com">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 24px;">
+          <label>Password</label>
+          <input class="form-control" type="password" id="passwordInput" name="password" required
+                 placeholder="••••••••">
+        </div>
+
+        <button class="btn btn-full" type="submit">
+          <span>Sign In to Account</span> ↗
+        </button>
+      </form>
+
+      <p style="text-align: center; font-size: 13px; color: var(--text-muted); margin-top: 24px;">
+        Don't have an account yet?
+        <a th:href="@{/register}" style="color: var(--primary); font-weight: 700;">Create one for free</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+<script>
+  function quickFill(email, pwd) {
+    document.getElementById('usernameInput').value = email;
+    document.getElementById('passwordInput').value = pwd;
+    document.getElementById('loginForm').submit();
+  }
+</script>
+
+</body>
+</html>

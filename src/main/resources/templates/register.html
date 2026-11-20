@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create an Account | EstateEase</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments :: nav}"></div>
+
+<div class="auth-page">
+  <div class="auth-box">
+    <!-- LEFT BANNER -->
+    <div class="auth-banner">
+      <div>
+        <span class="hero-tag" style="background: rgba(255,255,255,0.2); color:white;">JOIN ESTATEEASE</span>
+        <h2 style="font-family:'Playfair Display',serif; font-size: 38px; line-height: 1.15; margin-top: 14px;">
+          Find your space.<br><em>Or find your tenants.</em>
+        </h2>
+      </div>
+
+      <div>
+        <p style="font-size: 14px; opacity: 0.9; line-height: 1.7; margin-bottom: 20px;">
+          Whether you have a portfolio of luxury apartments to list or you're seeking your next ideal rental, EstateEase provides verified, frictionless property management.
+        </p>
+
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #d1fae5;">
+          <li>✓ No broker commissions or hidden fees</li>
+          <li>✓ In-person tour scheduling built-in</li>
+          <li>✓ Instant access to demo accounts</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- RIGHT REGISTRATION FORM -->
+    <div class="auth-form-wrap">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <span class="section-tag" style="margin: 0;">GET STARTED</span>
+        <a th:href="@{/}" class="view-all-link" style="font-size: 13px;">🏠 Return to Home</a>
+      </div>
+      <h1 style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 18px;">
+        Create your <em style="font-family:'Playfair Display',serif; font-style:italic; color:var(--primary);">account.</em>
+      </h1>
+
+      <form th:action="@{/register}" th:object="${user}" method="post">
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label>Full Name *</label>
+          <input class="form-control" type="text" th:field="*{name}" required placeholder="e.g. Rahul Verma">
+          <small class="field-error" th:errors="*{name}"></small>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label>Email Address *</label>
+          <input class="form-control" type="email" th:field="*{email}" required placeholder="you@domain.com">
+          <small class="field-error" th:errors="*{email}"></small>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label>Account Role *</label>
+          <select class="form-control" th:field="*{role}" required>
+            <option th:each="r : ${roles}" th:value="${r}" th:text="${r.name() == 'OWNER' ? 'Property Owner (List & Manage Homes)' : 'Tenant (Explore & Send Inquiries)'}"></option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label>Password (min. 8 characters) *</label>
+          <input class="form-control" type="password" th:field="*{password}" required minlength="8" placeholder="••••••••">
+          <small class="field-error" th:errors="*{password}"></small>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 22px;">
+          <label>Confirm Password *</label>
+          <input class="form-control" type="password" name="confirmPassword" required placeholder="••••••••">
+        </div>
+
+        <button class="btn btn-full" type="submit">
+          <span>Create Free Account</span> ↗
+        </button>
+      </form>
+
+      <p style="text-align: center; font-size: 13px; color: var(--text-muted); margin-top: 22px;">
+        Already registered?
+        <a th:href="@{/login}" style="color: var(--primary); font-weight: 700;">Sign in here</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+</body>
+</html>

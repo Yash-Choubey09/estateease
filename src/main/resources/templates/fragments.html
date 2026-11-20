@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<!-- UNIVERSAL NAVIGATION BAR -->
+<nav th:fragment="nav" class="navbar">
+  <div style="display: flex; align-items: center; gap: 24px;">
+    <a class="brand" th:href="@{/}">
+      <span class="brand-mark">E</span>
+      <span>estate<span>ease</span></span>
+    </a>
+
+    <!-- EXPLICIT HOME BUTTON -->
+    <a class="nav-link nav-link-home" th:href="@{/}">
+      <span style="font-size: 15px;">🏠</span>
+      <span>Home</span>
+    </a>
+
+    <a class="nav-link" th:href="@{/properties}">
+      <span>Explore Properties</span>
+    </a>
+
+    <a class="nav-link" th:href="@{/#solutions}">
+      <span>Solutions</span>
+    </a>
+
+    <a class="nav-link" th:href="@{/#faq}">
+      <span>FAQs</span>
+    </a>
+  </div>
+
+  <div class="nav-links">
+    <!-- AUTHENTICATED USER MENU -->
+    <th:block sec:authorize="isAuthenticated()">
+      <a class="nav-link" th:href="@{/dashboard}">
+        <span>📊 Dashboard</span>
+      </a>
+
+      <a class="nav-link" th:href="@{/owner/inquiries}" sec:authorize="hasRole('OWNER')">
+        <span>📬 Inquiries</span>
+      </a>
+
+      <a class="nav-link" th:href="@{/tenant/inquiries}" sec:authorize="hasRole('TENANT')">
+        <span>✉ My Inquiries</span>
+      </a>
+
+      <div class="user-badge">
+        <span class="user-avatar" sec:authentication="name" th:text="${#strings.substring(#authentication.name,0,1).toUpperCase()}">U</span>
+        <span sec:authorize="hasRole('OWNER')">Owner</span>
+        <span sec:authorize="hasRole('TENANT')">Tenant</span>
+      </div>
+
+      <!-- VISIBLE GET STARTED ACTION FOR LOGGED IN USERS -->
+      <a class="btn-get-started" th:href="@{/owner/properties/new}" sec:authorize="hasRole('OWNER')" style="padding: 8px 18px; font-size: 13px;">
+        <span>＋ Add Listing</span>
+      </a>
+      <a class="btn-get-started" th:href="@{/properties}" sec:authorize="hasRole('TENANT')" style="padding: 8px 18px; font-size: 13px;">
+        <span>🔍 Find Homes</span>
+      </a>
+
+      <form th:action="@{/logout}" method="post" style="display:inline;">
+        <button class="btn btn-sm btn-outline" type="submit">Sign Out</button>
+      </form>
+    </th:block>
+
+    <!-- ANONYMOUS GUEST MENU -->
+    <th:block sec:authorize="isAnonymous()">
+      <a th:href="@{/login}" class="nav-link" style="font-weight: 700;">Sign In</a>
+      <!-- HIGH VISIBILITY GET STARTED BUTTON -->
+      <a class="btn-get-started" th:href="@{/register}">
+        <span>Get Started Free</span> ↗
+      </a>
+    </th:block>
+  </div>
+</nav>
+
+<!-- FLASH MESSAGES -->
+<div th:fragment="flash" style="margin-top: 15px;">
+  <div class="alert alert-success" th:if="${success}">
+    <span style="font-size:18px;">✓</span>
+    <span th:text="${success}">Action completed successfully.</span>
+  </div>
+  <div class="alert alert-error" th:if="${error}">
+    <span style="font-size:18px;">⚠</span>
+    <span th:text="${error}">An error occurred.</span>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer th:fragment="footer" class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a class="brand" th:href="@{/}">
+          <span class="brand-mark">E</span>
+          <span style="color:white;">estate<span>ease</span></span>
+        </a>
+        <p>A cloud-native Property Management System built to streamline real estate discovery, tenant onboarding, automated leases, and maintenance workflows.</p>
+        <div style="margin-top: 18px; display: flex; gap: 12px; font-size: 13px;">
+          <span style="color:#10b981;">● Online &amp; Operational</span>
+          <span style="color:#64748b;">|</span>
+          <a th:href="@{/}" style="color: #cbd5e1; font-weight: 700;">🏠 Return to Home</a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4>Property Discovery</h4>
+        <ul>
+          <li><a th:href="@{/properties(type='APARTMENT')}">Luxury Apartments</a></li>
+          <li><a th:href="@{/properties(type='VILLA')}">Designer Villas</a></li>
+          <li><a th:href="@{/properties(type='HOUSE')}">Independent Homes</a></li>
+          <li><a th:href="@{/properties(type='COMMERCIAL')}">Commercial Units</a></li>
+          <li><a th:href="@{/properties(type='PLOT')}">Residential Plots</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Portals &amp; Tools</h4>
+        <ul>
+          <li><a th:href="@{/}">Home Landing Page</a></li>
+          <li><a th:href="@{/owner/dashboard}">Owner Dashboard</a></li>
+          <li><a th:href="@{/tenant/dashboard}">Tenant Hub</a></li>
+          <li><a th:href="@{/owner/properties/new}">List a New Property</a></li>
+          <li><a th:href="@{/login}">Demo Credentials</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Need Support?</h4>
+        <ul>
+          <li><a href="mailto:support@estateease.demo">support@estateease.demo</a></li>
+          <li><a href="tel:+911123456789">+91 11 2345 6789</a></li>
+          <li><span style="color:#64748b;">Available 24/7 across Metros</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>&copy; 2026 EstateEase OPMS Inc. All rights reserved. Inspired by low-code property management architectures.</span>
+      <div style="display: flex; gap: 20px;">
+        <a th:href="@{/}" style="color: #cbd5e1; font-weight: 600;">🏠 Home</a>
+        <a href="#top" style="color: #64748b;">Back to Top ↑</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,17 @@
+package com.estateease.model;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import java.time.LocalDateTime;
+@Entity @Table(name="app_users", uniqueConstraints=@UniqueConstraint(columnNames="email"))
+public class AppUser {
+ @Id @GeneratedValue(strategy=GenerationType.IDENTITY) private Long id;
+ @NotBlank @Size(max=80) private String name;
+ @NotBlank @Email @Column(nullable=false, unique=true) private String email;
+ @NotBlank @Column(nullable=false) private String password;
+ @Enumerated(EnumType.STRING) @Column(nullable=false,length=20) private Role role;
+ private LocalDateTime createdAt=LocalDateTime.now();
+ public Long getId(){return id;} public String getName(){return name;} public void setName(String v){name=v;}
+ public String getEmail(){return email;} public void setEmail(String v){email=v==null?null:v.trim().toLowerCase();}
+ public String getPassword(){return password;} public void setPassword(String v){password=v;}
+ public Role getRole(){return role;} public void setRole(Role v){role=v;} public LocalDateTime getCreatedAt(){return createdAt;}
+}

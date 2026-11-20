@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${property.title} + ' | EstateEase'">Property Details | EstateEase</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments :: nav}"></div>
+
+<main class="container" style="padding-top: 30px; padding-bottom: 80px;">
+  <div th:replace="~{fragments :: flash}"></div>
+
+  <!-- NAVIGATION BREADCRUMB WITH HOME OPTION -->
+  <div class="breadcrumb-bar">
+    <div class="breadcrumb-links">
+      <a th:href="@{/}"><span>🏠 Home</span></a>
+      <span>/</span>
+      <a th:href="@{/properties}">Explore Properties</a>
+      <span>/</span>
+      <span style="color: var(--dark); font-weight: 700;" th:text="${property.title}">Property Title</span>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <a class="btn btn-sm btn-light" th:href="@{/}">
+        <span>🏠 Home</span>
+      </a>
+      <a class="btn btn-sm btn-outline" th:href="@{/properties}">
+        <span>← All Properties</span>
+      </a>
+      <button class="btn btn-sm btn-light" onclick="shareProperty()">
+        <span>🔗 Share</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <!-- LEFT MAIN COLUMN -->
+    <div>
+      <!-- MAIN HERO PHOTO -->
+      <div class="gallery-main">
+        <img th:src="${property.getImageUrlOrFallback()}" th:alt="${property.title}">
+        <div class="photo-badges" style="top: 20px; left: 20px; right: 20px;">
+          <span class="type-badge" style="font-size: 12px; padding: 6px 14px;" th:text="${property.type}">APARTMENT</span>
+          <span class="status-badge" style="font-size: 12px; padding: 6px 14px;" th:classappend="'status-' + ${property.availability.name()}" th:text="${property.availability}">AVAILABLE</span>
+        </div>
+      </div>
+
+      <!-- HEADER TITLE & PRICING -->
+      <div class="detail-header">
+        <div>
+          <span class="section-tag" style="margin-bottom: 4px;" th:text="${property.location}">LOCATION</span>
+          <h1 th:text="${property.title}">Property Title</h1>
+          <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">
+            <span>📍 </span><span th:text="${property.location}">Delhi NCR</span>
+            <span style="margin: 0 8px;">·</span>
+            <span>Listed on <span th:text="${#temporals.format(property.createdAt, 'dd MMMM yyyy')}">20 Nov 2026</span></span>
+          </p>
+        </div>
+
+        <div class="detail-price-box">
+          <h2 th:text="'₹' + ${#numbers.formatDecimal(property.price,0,'COMMA',0,'POINT')}">₹32,000</h2>
+          <span th:text="${property.price >= 1000000 ? 'Estimated Value' : 'Monthly Rent (excl. maintenance)'}">Monthly Rent</span>
+        </div>
+      </div>
+
+      <!-- QUICK FACTS MATRIX -->
+      <div class="quick-facts-grid">
+        <div class="fact-item" th:if="${property.bedrooms > 0}">
+          <small>Bedrooms</small>
+          <b th:text="${property.bedrooms} + ' Bedrooms'">2 Bedrooms</b>
+        </div>
+        <div class="fact-item" th:if="${property.bathrooms > 0}">
+          <small>Bathrooms</small>
+          <b th:text="${property.bathrooms} + ' Bathrooms'">2 Bathrooms</b>
+        </div>
+        <div class="fact-item">
+          <small>Super Area</small>
+          <b th:text="${property.areaSqFt} + ' sq ft'">1,350 sq ft</b>
+        </div>
+        <div class="fact-item">
+          <small>Furnishing</small>
+          <b th:text="${property.furnishing}">Semi-Furnished</b>
+        </div>
+      </div>
+
+      <!-- DESCRIPTION -->
+      <div class="section-block">
+        <h3>About This Residence</h3>
+        <p style="color: var(--dark-soft); font-size: 15px; line-height: 1.8; white-space: pre-line;" th:text="${property.description}">
+          Property description details here.
+        </p>
+      </div>
+
+      <!-- AMENITIES -->
+      <div class="section-block" th:if="${property.amenities != null && !property.amenities.isBlank()}">
+        <h3>Building Amenities &amp; Features</h3>
+        <div class="amenities-chips">
+          <span class="amenity-chip" th:each="a : ${#strings.arraySplit(property.amenities, ',')}">
+            <span style="color: var(--primary);">✓</span>
+            <span th:text="${#strings.trim(a)}">Feature</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- INTERACTIVE MORTGAGE & EMI CALCULATOR -->
+      <div class="emi-widget" id="emiCalculator">
+        <div class="emi-widget-header">
+          <div>
+            <h3 style="margin:0; font-size: 18px;">Loan &amp; EMI Financial Calculator</h3>
+            <small style="color: var(--text-muted);">Simulate monthly mortgage payments with live rates</small>
+          </div>
+          <span style="font-size: 24px;">📊</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div class="emi-slider-group">
+            <div class="emi-slider-label">
+              <span>Loan Amount (INR)</span>
+              <b id="emiAmountLabel">₹10,00,000</b>
+            </div>
+            <input type="range" class="emi-slider" id="emiAmount"
+                   th:min="${property.price < 500000 ? 500000 : 1000000}"
+                   th:max="${property.price < 500000 ? 10000000 : property.price}"
+                   th:value="${property.price < 500000 ? 2500000 : (property.price * 0.8)}"
+                   step="50000" oninput="calculateEmi()">
+          </div>
+
+          <div class="emi-slider-group">
+            <div class="emi-slider-label">
+              <span>Interest Rate (%)</span>
+              <b id="emiRateLabel">8.5%</b>
+            </div>
+            <input type="range" class="emi-slider" id="emiRate" min="6.5" max="14.0" step="0.1" value="8.5" oninput="calculateEmi()">
+          </div>
+        </div>
+
+        <div class="emi-slider-group" style="margin-top: 10px;">
+          <div class="emi-slider-label">
+            <span>Loan Tenure (Years)</span>
+            <b id="emiTenureLabel">20 Years</b>
+          </div>
+          <input type="range" class="emi-slider" id="emiTenure" min="5" max="30" step="1" value="20" oninput="calculateEmi()">
+        </div>
+
+        <div class="emi-result-card">
+          <div>
+            <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--primary);">Estimated Monthly EMI</span>
+            <b id="emiMonthlyResult">₹17,356</b>
+          </div>
+          <div style="text-align: right; font-size: 13px; color: var(--dark-soft);">
+            <div>Total Interest: <b id="emiTotalInterest" style="font-size:14px; color:var(--dark);">₹11,65,440</b></div>
+            <div>Total Payable: <b id="emiTotalPayable" style="font-size:14px; color:var(--dark);">₹31,65,440</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDEBAR (OWNER INFO & INQUIRY FORM) -->
+    <aside>
+      <div class="inquiry-card-sidebar">
+        <!-- OWNER PROFILE STRIP -->
+        <div class="owner-profile-strip">
+          <div class="owner-avatar" th:text="${#strings.substring(property.owner.name,0,1).toUpperCase()}">A</div>
+          <div>
+            <b style="display:block; font-size: 16px;" th:text="${property.owner.name}">Aarav Mehta</b>
+            <span style="font-size: 12px; color: var(--success); font-weight: 600;">✓ Verified Property Owner</span>
+            <small style="display:block; color: var(--text-muted); font-size: 11px;" th:text="${property.owner.email}">owner@estateease.demo</small>
+          </div>
+        </div>
+
+        <!-- IF AVAILABLE & USER IS TENANT -->
+        <div th:if="${property.availability.name() == 'AVAILABLE'}" sec:authorize="hasRole('TENANT')">
+          <div class="tab-nav">
+            <button class="tab-btn active" id="tabInquiryBtn" onclick="switchTab('inquiry')">✉ Message</button>
+            <button class="tab-btn" id="tabTourBtn" onclick="switchTab('tour')">📅 Schedule Tour</button>
+          </div>
+
+          <!-- TAB 1: GENERAL INQUIRY -->
+          <div id="tabInquiry">
+            <div style="margin-bottom: 12px;">
+              <small style="font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 6px;">Quick message presets:</small>
+              <div class="preset-chips">
+                <span class="preset-chip" onclick="setPreset('Hi, is this property still available for viewing?')">Still available?</span>
+                <span class="preset-chip" onclick="setPreset('Hello, what are the lease terms and deposit required?')">Lease terms</span>
+                <span class="preset-chip" onclick="setPreset('Can we schedule an in-person visit this weekend?')">Visit weekend</span>
+              </div>
+            </div>
+
+            <form th:action="@{/tenant/inquiries/send/{id}(id=${property.id})}" method="post">
+              <input type="hidden" name="inquiryType" value="GENERAL">
+              <div class="form-group" style="margin-bottom: 14px;">
+                <label>Your Message</label>
+                <textarea class="form-control" id="inquiryMessage" name="message" rows="4" required maxlength="1200"
+                          placeholder="Type your question or request to the property owner..."></textarea>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 16px;">
+                <label>Your Contact Phone (Optional)</label>
+                <input class="form-control" type="tel" name="phone" placeholder="+91 98765 43210">
+              </div>
+
+              <button class="btn btn-full" type="submit">
+                <span>Send Direct Inquiry</span> ↗
+              </button>
+            </form>
+          </div>
+
+          <!-- TAB 2: SCHEDULE TOUR -->
+          <div id="tabTour" style="display: none;">
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+              Choose your preferred date and time for an accompanied in-person walk-through.
+            </p>
+
+            <form th:action="@{/tenant/inquiries/send/{id}(id=${property.id})}" method="post">
+              <input type="hidden" name="inquiryType" value="SCHEDULE_TOUR">
+              <div class="form-group" style="margin-bottom: 14px;">
+                <label>Preferred Date</label>
+                <input class="form-control" type="date" name="preferredDate" required>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 14px;">
+                <label>Preferred Time Slot</label>
+                <select class="form-control" name="message">
+                  <option value="Tour Request: Morning (10:00 AM - 1:00 PM)">Morning (10:00 AM - 1:00 PM)</option>
+                  <option value="Tour Request: Afternoon (2:00 PM - 5:00 PM)">Afternoon (2:00 PM - 5:00 PM)</option>
+                  <option value="Tour Request: Evening (5:00 PM - 7:30 PM)">Evening (5:00 PM - 7:30 PM)</option>
+                </select>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 16px;">
+                <label>Your Contact Phone</label>
+                <input class="form-control" type="tel" name="phone" required placeholder="+91 98765 43210">
+              </div>
+
+              <button class="btn btn-full" type="submit">
+                <span>Request Tour Appointment</span> ↗
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- ANONYMOUS USERS -->
+        <div sec:authorize="isAnonymous()">
+          <div style="background: var(--bg-subtle); border-radius: var(--radius-md); padding: 20px; text-align: center; border: 1px solid var(--border);">
+            <div style="font-size: 28px; margin-bottom: 8px;">🔐</div>
+            <h4 style="font-size: 16px; margin-bottom: 6px;">Sign in to Contact Owner</h4>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+              Create a free account or sign in with demo credentials to send inquiries and book private tours.
+            </p>
+            <a class="btn btn-full" th:href="@{/login}">Sign In Now ↗</a>
+            <div style="margin-top: 10px;">
+              <small style="color: var(--text-muted); font-size: 11px;">Demo: tenant@estateease.demo / Tenant@123</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- OWNER USER VISITING OWN OR OTHER PROPERTY -->
+        <div sec:authorize="hasRole('OWNER')">
+          <div style="background: var(--bg-subtle); border-radius: var(--radius-md); padding: 18px; border: 1px solid var(--border);">
+            <b style="font-size: 14px; display: block; margin-bottom: 6px;">Owner Workspace</b>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
+              You are signed in as an owner. Manage your listings and view all received inquiries in your dashboard.
+            </p>
+            <a class="btn btn-sm btn-outline btn-full" th:href="@{/owner/dashboard}">Open Owner Dashboard</a>
+          </div>
+        </div>
+
+        <!-- IF NOT AVAILABLE -->
+        <div th:if="${property.availability.name() != 'AVAILABLE'}">
+          <div style="background: #fef3c7; border: 1px solid #fde68a; border-radius: var(--radius-md); padding: 16px; text-align: center; margin-top: 10px;">
+            <b style="color: #92400e; display: block; font-size: 14px; margin-bottom: 4px;">Currently Rented / Unavailable</b>
+            <p style="color: #b45309; font-size: 12.5px; margin: 0;">This listing is occupied or under contract. Inquiries are closed.</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- SIMILAR PROPERTIES SECTION -->
+  <div class="section" style="padding-top: 60px;" th:if="${similarProperties != null && !#lists.isEmpty(similarProperties)}">
+    <div class="section-header">
+      <div>
+        <span class="section-tag">SIMILAR OPTIONS</span>
+        <h2 class="section-title">You might also <em>like.</em></h2>
+      </div>
+      <a class="view-all-link" th:href="@{/properties(type=${property.type})}">See more in this category ↗</a>
+    </div>
+
+    <div class="property-grid">
+      <article class="property-card" th:each="p : ${similarProperties}">
+        <div class="property-card-photo">
+          <img class="property-card-img" th:src="${p.getImageUrlOrFallback()}" th:alt="${p.title}" loading="lazy">
+          <div class="photo-badges">
+            <span class="type-badge" th:text="${p.type}">APARTMENT</span>
+            <span class="status-badge" th:classappend="'status-' + ${p.availability.name()}" th:text="${p.availability}">AVAILABLE</span>
+          </div>
+        </div>
+
+        <div class="property-card-body">
+          <div class="property-location">
+            <span>📍 </span><span th:text="${p.location}">Delhi</span>
+          </div>
+          <h3 class="property-card-title">
+            <a th:href="@{/properties/{id}(id=${p.id})}" th:text="${p.title}">Similar Property</a>
+          </h3>
+          <div class="property-card-footer">
+            <div class="property-price">
+              <b th:text="'₹' + ${#numbers.formatDecimal(p.price,0,'COMMA',0,'POINT')}">₹32,000</b>
+            </div>
+            <a class="btn btn-sm btn-outline" th:href="@{/properties/{id}(id=${p.id})}">View</a>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</main>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+<!-- INTERACTIVE SCRIPTS -->
+<script>
+  function switchTab(tab) {
+    const inqTab = document.getElementById('tabInquiry');
+    const tourTab = document.getElementById('tabTour');
+    const inqBtn = document.getElementById('tabInquiryBtn');
+    const tourBtn = document.getElementById('tabTourBtn');
+
+    if (tab === 'tour') {
+      inqTab.style.display = 'none';
+      tourTab.style.display = 'block';
+      inqBtn.classList.remove('active');
+      tourBtn.classList.add('active');
+    } else {
+      inqTab.style.display = 'block';
+      tourTab.style.display = 'none';
+      inqBtn.classList.add('active');
+      tourBtn.classList.remove('active');
+    }
+  }
+
+  function setPreset(text) {
+    const textarea = document.getElementById('inquiryMessage');
+    if (textarea) {
+      textarea.value = text;
+      textarea.focus();
+    }
+  }
+
+  function shareProperty() {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Listing link copied to clipboard!');
+    } else {
+      alert('Link: ' + window.location.href);
+    }
+  }
+
+  function calculateEmi() {
+    const amount = parseFloat(document.getElementById('emiAmount').value);
+    const annualRate = parseFloat(document.getElementById('emiRate').value);
+    const years = parseFloat(document.getElementById('emiTenure').value);
+
+    document.getElementById('emiAmountLabel').innerText = '₹' + Math.round(amount).toLocaleString('en-IN');
+    document.getElementById('emiRateLabel').innerText = annualRate.toFixed(1) + '%';
+    document.getElementById('emiTenureLabel').innerText = years + ' Years';
+
+    const monthlyRate = annualRate / 12 / 100;
+    const months = years * 12;
+
+    const emi = (amount * monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1);
+    const totalPayable = emi * months;
+    const totalInterest = totalPayable - amount;
+
+    document.getElementById('emiMonthlyResult').innerText = '₹' + Math.round(emi).toLocaleString('en-IN');
+    document.getElementById('emiTotalInterest').innerText = '₹' + Math.round(totalInterest).toLocaleString('en-IN');
+    document.getElementById('emiTotalPayable').innerText = '₹' + Math.round(totalPayable).toLocaleString('en-IN');
+  }
+
+  // Initial calculation on page load
+  window.addEventListener('DOMContentLoaded', calculateEmi);
+</script>
+
+</body>
+</html>

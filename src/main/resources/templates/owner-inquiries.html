@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Owner Inquiries | EstateEase</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments :: nav}"></div>
+
+<main class="container" style="max-width: 950px; padding-top: 40px; padding-bottom: 80px;">
+  <div th:replace="~{fragments :: flash}"></div>
+
+  <!-- BREADCRUMB BAR WITH HOME OPTION -->
+  <div class="breadcrumb-bar">
+    <div class="breadcrumb-links">
+      <a th:href="@{/}"><span>🏠 Home</span></a>
+      <span>/</span>
+      <a th:href="@{/owner/dashboard}">Owner Dashboard</a>
+      <span>/</span>
+      <span style="color: var(--dark); font-weight: 700;">Incoming Inquiries</span>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <a class="btn btn-sm btn-light" th:href="@{/}">🏠 Home</a>
+      <a class="btn btn-sm btn-outline" th:href="@{/owner/dashboard}">← Dashboard</a>
+    </div>
+  </div>
+
+  <div style="margin-bottom: 30px;">
+    <span class="section-tag">OWNER WORKSPACE</span>
+    <h1 style="font-size: 32px; font-weight: 800; letter-spacing: -0.6px;">
+      Incoming Tenant <em>Inquiries.</em>
+    </h1>
+    <p style="color: var(--text-muted); font-size: 14.5px;">
+      Review prospective tenant inquiries, private tour requests, and contact details.
+    </p>
+  </div>
+
+  <div style="display: grid; gap: 18px;">
+    <article class="metric-card" style="padding: 24px;" th:each="i : ${inquiries}">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+        <div style="display: flex; gap: 14px; align-items: center;">
+          <div class="user-avatar" style="width: 44px; height: 44px; font-size: 16px;"
+               th:text="${#strings.substring(i.tenant.name,0,1).toUpperCase()}">T</div>
+          <div>
+            <b style="font-size: 17px; display: block;" th:text="${i.tenant.name}">Tenant Name</b>
+            <span style="font-size: 13px; color: var(--text-muted);" th:text="${i.tenant.email}">tenant@domain.com</span>
+            <span th:if="${i.phone != null && !i.phone.isBlank()}" style="margin-left: 8px; font-size: 13px; color: var(--primary); font-weight: 600;">
+              📞 <span th:text="${i.phone}">+91 9876543210</span>
+            </span>
+          </div>
+        </div>
+
+        <div style="text-align: right;">
+          <span class="status-badge" th:classappend="${i.status == 'NEW' ? 'status-AVAILABLE' : 'status-RENTED'}" th:text="${i.status}">NEW</span>
+          <small style="display:block; color:var(--text-muted); font-size:11px; margin-top: 4px;"
+                 th:text="${#temporals.format(i.createdAt, 'dd MMM yyyy, hh:mm a')}">Date</small>
+        </div>
+      </div>
+
+      <!-- PROPERTY REFERENCE STRIP -->
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: white; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 12px;">
+        <div style="font-size: 13px;">
+          <span style="color: var(--text-muted);">Inquiry for:</span>
+          <b style="margin-left: 4px;" th:text="${i.property.title}">Property Title</b>
+          <span style="margin-left: 6px; color: var(--text-muted);" th:text="'(' + ${i.property.location} + ')'">Location</span>
+        </div>
+        <a class="view-all-link" style="font-size: 12px;" th:href="@{/properties/{id}(id=${i.property.id})}">View Listing ↗</a>
+      </div>
+
+      <!-- MESSAGE CONTENT -->
+      <div style="background: var(--bg-subtle); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border); font-size: 14px; color: var(--dark);">
+        <div style="font-weight: 600; font-size: 12px; text-transform: uppercase; color: var(--primary); margin-bottom: 4px;"
+             th:text="${i.inquiryType}">GENERAL INQUIRY</div>
+        <p style="margin: 0; line-height: 1.6;" th:text="${i.message}">Tenant message details...</p>
+        <div style="margin-top: 8px; font-size: 12.5px; color: var(--accent); font-weight: 600;"
+             th:if="${i.preferredDate != null && !i.preferredDate.isBlank()}">
+          📅 Requested In-Person Tour Date: <span th:text="${i.preferredDate}">Date</span>
+        </div>
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border);">
+        <div style="display: flex; gap: 8px;">
+          <!-- STATUS UPDATE FORM -->
+          <form th:action="@{/owner/inquiries/{id}/status(id=${i.id})}" method="post" style="display:inline;">
+            <input type="hidden" name="status" value="CONTACTED">
+            <button type="submit" class="btn btn-sm btn-light" th:if="${i.status != 'CONTACTED'}">Mark as Contacted</button>
+          </form>
+
+          <form th:action="@{/owner/inquiries/{id}/status(id=${i.id})}" method="post" style="display:inline;">
+            <input type="hidden" name="status" value="RESOLVED">
+            <button type="submit" class="btn btn-sm btn-light" th:if="${i.status != 'RESOLVED'}">Mark as Resolved</button>
+          </form>
+        </div>
+
+        <a class="btn btn-sm" th:href="'mailto:' + ${i.tenant.email} + '?subject=Inquiry Response: ' + ${i.property.title}">
+          <span>Reply via Email</span> ✉
+        </a>
+      </div>
+    </article>
+
+    <div class="empty-state" th:if="${#lists.isEmpty(inquiries)}" style="background: white; border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 50px;">
+      <span style="font-size: 42px;">📬</span>
+      <h3 style="margin: 12px 0 6px;">No inquiries received yet</h3>
+      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
+        When prospective tenants send messages or book tours on your listings, they will appear here.
+      </p>
+      <a class="btn" th:href="@{/owner/dashboard}">Back to Dashboard</a>
+    </div>
+  </div>
+</main>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Access Restricted | EstateEase</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments :: nav}"></div>
+
+<main class="container" style="text-align: center; padding: 100px 20px;">
+  <div style="max-width: 500px; margin: 0 auto; background: white; border-radius: var(--radius-xl); padding: 50px 30px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+    <span style="font-size: 54px; display: block; margin-bottom: 16px;">🔒</span>
+    <span class="section-tag" style="color: var(--danger);">ACCESS RESTRICTED (403)</span>
+    <h1 style="font-size: 28px; font-weight: 800; margin: 10px 0 12px;">This space is <em>reserved.</em></h1>
+    <p style="color: var(--text-muted); font-size: 14.5px; line-height: 1.6; margin-bottom: 24px;">
+      Your account role does not have permission to access this resource (e.g. attempting to view the owner dashboard with a tenant account).
+    </p>
+    <div style="display: flex; gap: 12px; justify-content: center;">
+      <a class="btn" th:href="@{/dashboard}">Go to My Dashboard</a>
+      <a class="btn btn-outline" th:href="@{/}">Return Home</a>
+    </div>
+  </div>
+</main>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+</body>
+</html>

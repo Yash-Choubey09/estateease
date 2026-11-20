@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Explore Properties | EstateEase</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments :: nav}"></div>
+
+<main class="container" style="padding-top: 30px; padding-bottom: 70px;">
+  <!-- BREADCRUMB BAR WITH EXPLICIT HOME BUTTON -->
+  <div class="breadcrumb-bar">
+    <div class="breadcrumb-links">
+      <a th:href="@{/}"><span>🏠 Home</span></a>
+      <span>/</span>
+      <span style="color: var(--dark); font-weight: 700;">Explore Properties</span>
+    </div>
+    <a class="btn btn-sm btn-light" th:href="@{/}">
+      <span>← Return to Home Landing Page</span>
+    </a>
+  </div>
+
+  <!-- PAGE HEADER -->
+  <div style="margin-bottom: 30px;">
+    <span class="section-tag">CURATED REAL ESTATE COLLECTION</span>
+    <h1 style="font-size: 38px; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px;">
+      Explore Available <em style="font-family:'Playfair Display',serif; font-style:italic; color:var(--primary);">Spaces.</em>
+    </h1>
+    <p style="color: var(--text-muted); font-size: 15px;">
+      Browse verified apartments, standalone homes, luxury villas, and commercial spaces across prime metro locations.
+    </p>
+  </div>
+
+  <!-- ADVANCED FILTER BAR -->
+  <div class="filter-box">
+    <form method="get" th:action="@{/properties}">
+      <div class="filter-grid">
+        <div class="form-group">
+          <label>Keyword / Location</label>
+          <input class="form-control" type="text" name="query" placeholder="e.g. Delhi, Gurugram, Kailash" th:value="${query}">
+        </div>
+
+        <div class="form-group">
+          <label>Property Type</label>
+          <select class="form-control" name="type">
+            <option value="">All Types</option>
+            <option th:each="t : ${types}" th:value="${t}" th:text="${t}" th:selected="${t == type}"></option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Availability</label>
+          <select class="form-control" name="availability">
+            <option value="">Any Status</option>
+            <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}" th:selected="${s == availability}"></option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Min Bedrooms</label>
+          <select class="form-control" name="minBedrooms">
+            <option value="">Any</option>
+            <option value="1" th:selected="${minBedrooms == 1}">1+ Bed</option>
+            <option value="2" th:selected="${minBedrooms == 2}">2+ Beds</option>
+            <option value="3" th:selected="${minBedrooms == 3}">3+ Beds</option>
+            <option value="4" th:selected="${minBedrooms == 4}">4+ Beds</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Sort By</label>
+          <select class="form-control" name="sort">
+            <option value="newest" th:selected="${sort == 'newest'}">Newest First</option>
+            <option value="price_asc" th:selected="${sort == 'price_asc'}">Price: Low to High</option>
+            <option value="price_desc" th:selected="${sort == 'price_desc'}">Price: High to Low</option>
+          </select>
+        </div>
+
+        <div>
+          <button class="btn btn-full btn-emerald" type="submit" style="padding: 10px 18px; font-weight: 800;">
+            <span>Apply</span> ↗
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- RESULTS SUMMARY -->
+  <div class="results-bar">
+    <div>
+      <b th:text="${#lists.size(properties)} + ' properties found'">8 properties found</b>
+      <span th:if="${query != null && !query.isBlank()}" th:text="' matching &quot;' + ${query} + '&quot;'"></span>
+      <span th:if="${type != null}" th:text="' in ' + ${type}"></span>
+    </div>
+    <div>
+      <a th:href="@{/properties}" class="view-all-link" style="font-size: 13px; color: var(--text-muted);">
+        ✕ Reset all filters
+      </a>
+    </div>
+  </div>
+
+  <!-- PROPERTIES GRID -->
+  <div class="property-grid" th:if="${!#lists.isEmpty(properties)}">
+    <article class="property-card" th:each="p : ${properties}">
+      <div class="property-card-photo">
+        <img class="property-card-img" th:src="${p.getImageUrlOrFallback()}" th:alt="${p.title}" loading="lazy">
+        <div class="photo-badges">
+          <span class="type-badge" th:text="${p.type}">APARTMENT</span>
+          <span class="status-badge" th:classappend="'status-' + ${p.availability.name()}" th:text="${p.availability}">AVAILABLE</span>
+        </div>
+      </div>
+
+      <div class="property-card-body">
+        <div class="property-location">
+          <span>📍</span>
+          <span th:text="${p.location}">Delhi</span>
+        </div>
+
+        <h3 class="property-card-title">
+          <a th:href="@{/properties/{id}(id=${p.id})}" th:text="${p.title}">Modern 2BHK Apartment</a>
+        </h3>
+
+        <div class="property-specs">
+          <div class="spec-item" th:if="${p.bedrooms > 0}">
+            <span>🛏</span>
+            <span th:text="${p.bedrooms} + ' Beds'">2 Beds</span>
+          </div>
+          <div class="spec-item" th:if="${p.bathrooms > 0}">
+            <span>🚿</span>
+            <span th:text="${p.bathrooms} + ' Baths'">2 Baths</span>
+          </div>
+          <div class="spec-item" th:if="${p.areaSqFt > 0}">
+            <span>📐</span>
+            <span th:text="${p.areaSqFt} + ' sq ft'">1,350 sq ft</span>
+          </div>
+        </div>
+
+        <div class="property-card-footer">
+          <div class="property-price">
+            <b th:text="'₹' + ${#numbers.formatDecimal(p.price,0,'COMMA',0,'POINT')}">₹32,000</b>
+            <small th:text="${p.price >= 1000000 ? 'Selling Price' : 'per month'}">per month</small>
+          </div>
+
+          <a class="btn btn-sm btn-outline" th:href="@{/properties/{id}(id=${p.id})}">
+            <span>View Details</span> ↗
+          </a>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <!-- EMPTY STATE -->
+  <div class="empty-state" th:if="${#lists.isEmpty(properties)}" style="background: white; border-radius: var(--radius-lg); border: 1px solid var(--border); margin-top: 20px; padding: 50px 20px; text-align: center;">
+    <span style="font-size: 42px;">🔍</span>
+    <h3 style="margin: 12px 0 6px;">No matching properties found</h3>
+    <p style="color: var(--text-muted); margin-bottom: 24px;">
+      Try broadening your search query, adjusting your budget range, or clearing filters.
+    </p>
+    <a class="btn" th:href="@{/properties}">Clear All Filters</a>
+  </div>
+</main>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+</body>
+</html>
